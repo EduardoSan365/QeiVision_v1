@@ -258,7 +258,6 @@ async function selectAccess(access) {
   document.getElementById('selected-user').textContent = access.usuario;
   setStatus(document.getElementById('selected-status'), access.compro);
   const scanButton = document.getElementById('btn-scanned');
-  scanButton.hidden = false;
   scanButton.classList.remove('active');
   document.getElementById('scan-card').hidden = true;
   await loadTicket(access);
@@ -351,7 +350,6 @@ function clearSelection() {
   activeAccess = null;
   document.getElementById('empty-state').hidden = false;
   document.getElementById('audit-detail').hidden = true;
-  document.getElementById('btn-scanned').hidden = true;
   document.getElementById('scan-card').hidden = true;
 }
 
