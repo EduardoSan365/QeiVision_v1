@@ -53,17 +53,40 @@ app.get('/api/accesos', async (req, res, next) => {
               WHERE c.SucursalId = @sucursal AND c.Tipo = 'PUERTA'
                 AND c.Fecha BETWEEN @desde AND @hasta
               ORDER BY c.Fecha DESC`);
+    // Cargar todas las ventas del rango en una sola consulta. Antes se hacía
+    // una consulta a Ventas por cada acceso (N+1), lo que volvía muy lento un
+    // barrio con muchos registros.
+    const userIds = [...new Set(result.recordset.map(row => row.UsuarioId).filter(Boolean))];
+    const salesByUser = new Map();
+    if (userIds.length) {
+      const salesRequest = db.request()
+        .input('ventasDesde', sql.DateTime2, new Date(`${from}T00:00:00`))
+        .input('ventasHasta', sql.DateTime2, new Date(new Date(`${to}T23:59:59`).getTime() + 45 * 60 * 1000));
+      const userParams = userIds.map((userId, index) => {
+        const name = `usuario${index}`;
+        salesRequest.input(name, sql.Int, userId);
+        return `@${name}`;
+      });
+      const salesResult = await salesRequest.query(
+        `SELECT Id, UsuarioId, Fecha, Importe
+         FROM Ventas
+         WHERE UsuarioId IN (${userParams.join(',')})
+           AND Fecha BETWEEN @ventasDesde AND @ventasHasta
+         ORDER BY Fecha, Id`
+      );
+      for (const sale of salesResult.recordset) {
+        if (!salesByUser.has(sale.UsuarioId)) salesByUser.set(sale.UsuarioId, []);
+        salesByUser.get(sale.UsuarioId).push(sale);
+      }
+    }
+
     const seenSales = new Set();
     const accesos = [];
     for (const row of result.recordset) {
-      let sales = [];
-      if (row.Fecha && row.UsuarioId) {
-        const salesResult = await db.request().input('usuario', sql.Int, row.UsuarioId)
-          .input('desde', sql.DateTime2, row.Fecha)
-          .input('hasta', sql.DateTime2, new Date(row.Fecha.getTime() + 45 * 60 * 1000))
-          .query('SELECT Id, Importe FROM Ventas WHERE UsuarioId = @usuario AND Fecha BETWEEN @desde AND @hasta ORDER BY Fecha, Id');
-        sales = salesResult.recordset;
-      }
+      const windowEnd = row.Fecha ? new Date(row.Fecha.getTime() + 45 * 60 * 1000) : null;
+      const sales = row.Fecha && row.UsuarioId
+        ? (salesByUser.get(row.UsuarioId) || []).filter(sale => sale.Fecha >= row.Fecha && sale.Fecha <= windowEnd)
+        : [];
       const saleKey = row.UsuarioId && sales.length ? `${row.UsuarioId}:${sales.map(sale => sale.Id).join(',')}` : '';
       if (saleKey && seenSales.has(saleKey)) continue;
       if (saleKey) seenSales.add(saleKey);
