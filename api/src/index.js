@@ -138,7 +138,7 @@ app.get('/api/logs-carritos', async (req, res, next) => {
       return res.status(400).json({ status: 'error', message: 'Referencia inválida.' });
     }
     const db = await poolPromise;
-    const table = process.env.LOG_CARRITOS_TABLE || 'LogsCarritos';
+    const table = process.env.LOG_CARRITOS_TABLE || 'LogCarrito';
     const result = await db.request().input('usuario', sql.Int, userId).input('fecha', sql.VarChar(19), accessTime)
       .query(`SELECT l.Fecha, CONVERT(varchar(8), l.Fecha, 108) AS HoraMovimiento,
                      COALESCE(p.Nombre, CONCAT('Producto #', l.ProductoId)) AS Producto,
