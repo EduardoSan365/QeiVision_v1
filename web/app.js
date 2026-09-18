@@ -278,6 +278,10 @@ async function toggleScannedProducts() {
   try {
     const params = new URLSearchParams({ usuario_id: activeAccess.usuario_id, fecha: activeAccess.fecha });
     const response = await fetch(apiUrl(`/api/logs-carritos?${params}`));
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('La API todavía no tiene publicado el endpoint de movimientos de carrito.');
+    }
     const data = await response.json();
     if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudieron cargar los productos escaneados.');
     tbody.innerHTML = data.productos.length ? data.productos.map(item => `
