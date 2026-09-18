@@ -59,6 +59,7 @@ function bindEvents() {
   searchInput.addEventListener('input', applyFilters);
 
   document.getElementById('ref-time')?.addEventListener('click', copyOnlyTime);
+  document.getElementById('btn-scanned')?.addEventListener('click', toggleScannedProducts);
 
   document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -256,7 +257,36 @@ async function selectAccess(access) {
   document.getElementById('avatar-user').textContent = (access.usuario || 'U').charAt(0).toUpperCase();
   document.getElementById('selected-user').textContent = access.usuario;
   setStatus(document.getElementById('selected-status'), access.compro);
+  const scanButton = document.getElementById('btn-scanned');
+  scanButton.hidden = false;
+  scanButton.classList.remove('active');
+  document.getElementById('scan-card').hidden = true;
   await loadTicket(access);
+}
+
+async function toggleScannedProducts() {
+  const button = document.getElementById('btn-scanned');
+  const card = document.getElementById('scan-card');
+  if (!card.hidden) {
+    card.hidden = true;
+    button.classList.remove('active');
+    return;
+  }
+  const tbody = document.getElementById('tbody-escaneados');
+  card.hidden = false;
+  button.classList.add('active');
+  tbody.innerHTML = '<tr><td colspan="3" class="loading-cell">Consultando movimientos del carrito…</td></tr>';
+  try {
+    const params = new URLSearchParams({ usuario_id: activeAccess.usuario_id, fecha: activeAccess.fecha });
+    const response = await fetch(apiUrl(`/api/logs-carritos?${params}`));
+    const data = await response.json();
+    if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudieron cargar los productos escaneados.');
+    tbody.innerHTML = data.productos.length ? data.productos.map(item => `
+      <tr><td class="mono-muted">${escapeHtml(item.hora)}</td><td class="product-name">${escapeHtml(item.producto)}</td><td class="scan-action ${item.accion === 'Quitó' ? 'removed' : ''}">${escapeHtml(item.accion)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty-cell">No hay movimientos de carrito para este ingreso.</td></tr>';
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="3" class="error-cell">${escapeHtml(error.message)}</td></tr>`;
+  }
 }
 
 async function loadTicket(access) {
@@ -321,6 +351,8 @@ function clearSelection() {
   activeAccess = null;
   document.getElementById('empty-state').hidden = false;
   document.getElementById('audit-detail').hidden = true;
+  document.getElementById('btn-scanned').hidden = true;
+  document.getElementById('scan-card').hidden = true;
 }
 
 async function copyOnlyTime() {

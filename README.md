@@ -18,23 +18,16 @@ La versión operativa está validada con HME, cámaras 1 y 2, para el 16/09/2026
 
 SmartPSS Lite puede permanecer abierto como herramienta de respaldo, pero la consola no usa su interfaz ni el complemento HTML para reproducir. Utiliza las bibliotecas Dahua instaladas junto con SmartPSS Lite.
 
-## Iniciar
+## Despliegue
 
-1. Ejecutar `iniciar_qeivision.cmd`. El iniciador abre SmartPSS Lite si está cerrado y espera unos segundos.
-2. Comprobar en SmartPSS Lite que el DVR figure **En línea**.
-3. Si el navegador no se abre solo, visitar `http://127.0.0.1:8080`.
-4. Elegir tienda, fecha y cámara, y pulsar **Iniciar Auditoría**.
-5. Seleccionar un acceso en la columna izquierda para consultar su ticket.
-6. Hacer clic en una franja amarilla para iniciar la reproducción continua desde ese horario.
-7. Usar `+` o la rueda del mouse sobre la línea para ampliar; `◀` y `▶` desplazan la ventana.
+La consola web se trabaja mediante Git, Vercel y la API oficial de QeiVision.
+No se utiliza un servidor web local ni un puerto `localhost` para la aplicación.
 
 La primera conexión P2P puede tardar algunos segundos. En la prueba de HME cámara 2, el flujo comenzó a entregar datos en 4,1 segundos y continuó más allá del límite anterior de 15 segundos.
 
 ## Configuración
 
-`config.local.json` contiene la configuración privada y no se versiona. La consola sólo escucha en `127.0.0.1`, por lo que no queda expuesta a la red local.
-
-El entorno Python se encuentra en `.venv` dentro de este proyecto. Las dependencias declaradas están en `requirements.txt`.
+Las credenciales y variables de despliegue se administran fuera del repositorio, en la configuración del proyecto de Vercel y de la API.
 
 ## Documentación técnica
 

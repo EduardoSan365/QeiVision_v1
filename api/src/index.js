@@ -130,5 +130,28 @@ app.get('/api/auditoria', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+app.get('/api/logs-carritos', async (req, res, next) => {
+  try {
+    const userId = Number(req.query.usuario_id);
+    const accessTime = String(req.query.fecha || '');
+    if (!Number.isInteger(userId) || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(accessTime)) {
+      return res.status(400).json({ status: 'error', message: 'Referencia inválida.' });
+    }
+    const db = await poolPromise;
+    const table = process.env.LOG_CARRITOS_TABLE || 'LogsCarritos';
+    const result = await db.request().input('usuario', sql.Int, userId).input('fecha', sql.VarChar(19), accessTime)
+      .query(`SELECT l.Fecha, CONVERT(varchar(8), l.Fecha, 108) AS HoraMovimiento,
+                     COALESCE(p.Nombre, CONCAT('Producto #', l.ProductoId)) AS Producto,
+                     CASE WHEN LOWER(CAST(l.Accion AS varchar(30))) LIKE '%quit%' THEN 'Quitó' ELSE 'Agregó' END AS Accion
+              FROM ${table} l
+              LEFT JOIN Productos p ON l.ProductoId = p.Id
+              WHERE l.UsuarioId = @usuario
+                AND l.Fecha BETWEEN DATEADD(minute, -10, CONVERT(datetime2, @fecha))
+                                 AND DATEADD(minute, 45, CONVERT(datetime2, @fecha))
+              ORDER BY l.Fecha ASC`);
+    return res.json({ status: 'ok', productos: result.recordset.map(row => ({ hora: row.HoraMovimiento || '', producto: String(row.Producto || '').trim(), accion: row.Accion })) });
+  } catch (error) { return next(error); }
+});
+
 app.use((error, _req, res, _next) => { console.error('[QeiVision-API]', error.message); res.status(500).json({ status: 'error', message: 'No se pudo completar la operación.' }); });
 app.listen(port, () => console.log(`QeiVision-API escuchando en puerto ${port}`));

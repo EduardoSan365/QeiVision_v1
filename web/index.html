@@ -84,6 +84,7 @@
             <h2 id="selected-user">—</h2>
           </div>
           <span id="selected-status" class="status-badge">—</span>
+          <button id="btn-scanned" class="scan-button" type="button" hidden>Escaneó</button>
         </section>
 
         <section class="ticket-card">
@@ -107,6 +108,21 @@
             <div class="no-purchase-icon">🚪</div>
             <h3>Este usuario abrió la puerta y no realizó compra</h3>
             <p>No se encontró ningún ticket facturado ni cobro asociado a este ingreso en AutoShop.</p>
+          </div>
+        </section>
+
+        <section id="scan-card" class="ticket-card scan-card" hidden>
+          <div class="ticket-heading">
+            <div>
+              <p class="eyebrow">ESTADO DEL ESCANEO</p>
+              <h2>Productos escaneados</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Hora de escaneo</th><th>Producto</th><th>Carrito</th></tr></thead>
+              <tbody id="tbody-escaneados"></tbody>
+            </table>
           </div>
         </section>
       </div>
