@@ -76,6 +76,8 @@ def main():
     parser.add_argument('--user', default='admin')
     parser.add_argument('--password', required=True)
     parser.add_argument('--channel', type=int, default=8)
+    parser.add_argument('--conf', type=float, default=0.10, help='Confianza mínima')
+    parser.add_argument('--imgsz', type=int, default=1280, help='Resolución de inferencia')
     args = parser.parse_args()
 
     model_path = Path(__file__).resolve().parents[1] / 'models' / 'yolo11n.pt'
@@ -95,7 +97,7 @@ def main():
                 time.sleep(0.05)
                 continue
             now = time.time()
-            result = model.track(frame, persist=True, classes=[0, 15, 16], conf=0.25, verbose=False)[0]
+            result = model.track(frame, persist=True, classes=[0, 15, 16], conf=args.conf, imgsz=args.imgsz, verbose=False)[0]
             if result.boxes is not None:
                 ids = result.boxes.id
                 for index, cls in enumerate(result.boxes.cls):
