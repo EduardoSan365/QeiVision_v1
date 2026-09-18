@@ -3,6 +3,11 @@ let currentAccesses = [];
 let filteredAccesses = [];
 let activeAccess = null;
 let activeFilter = 'TODOS';
+const API_BASE = String(window.QEIVISION_API_BASE || '').replace(/\/$/, '');
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   const today = localDateValue(new Date());
@@ -106,7 +111,7 @@ function resetAccessListForUpdate() {
 
 async function loadStores() {
   try {
-    const response = await fetch('/api/tiendas');
+    const response = await fetch(apiUrl('/api/tiendas'));
     const data = await response.json();
     if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudieron cargar las tiendas.');
     stores = data.tiendas || {};
@@ -145,7 +150,7 @@ async function loadAudit() {
 
   try {
     const params = new URLSearchParams({tienda: storeKey, desde: from, hasta: to});
-    const response = await fetch(`/api/accesos?${params}`);
+    const response = await fetch(apiUrl(`/api/accesos?${params}`));
     const data = await response.json();
     if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudieron cargar los ingresos.');
     currentAccesses = data.accesos || [];
@@ -264,7 +269,7 @@ async function loadTicket(access) {
 
   try {
     const params = new URLSearchParams({usuario_id: access.usuario_id, fecha: access.fecha});
-    const response = await fetch(`/api/auditoria?${params}`);
+    const response = await fetch(apiUrl(`/api/auditoria?${params}`));
     const data = await response.json();
     if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudo cargar el ticket.');
     renderTicket(data.auditoria);
