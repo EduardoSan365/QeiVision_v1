@@ -6,11 +6,13 @@ por argumento para no guardar credenciales ni puertos del equipo en código.
 from __future__ import annotations
 
 import argparse
+import socket
 import threading
 import time
 from pathlib import Path
 
 import cv2
+import psutil
 from ultralytics import YOLO
 
 
@@ -42,9 +44,35 @@ class FreshRTSPStream:
         self.capture.release()
 
 
+def detect_rtsp_port() -> int:
+    """Encuentra el túnel RTSP de SmartPSS mediante una petición OPTIONS."""
+    candidates = []
+    for process in psutil.process_iter(['name']):
+        if 'smartpss' not in (process.info['name'] or '').lower():
+            continue
+        try:
+            connections = process.net_connections(kind='inet')
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            continue
+        for connection in connections:
+            if connection.status != 'LISTEN':
+                continue
+            port = connection.laddr.port
+            try:
+                with socket.create_connection(('127.0.0.1', port), timeout=0.4) as sock:
+                    sock.sendall(b'OPTIONS rtsp://127.0.0.1/ RTSP/1.0\r\nCSeq: 1\r\n\r\n')
+                    if b'RTSP' in sock.recv(512):
+                        candidates.append(port)
+            except OSError:
+                continue
+    if not candidates:
+        raise RuntimeError('No se encontró un túnel RTSP activo de SmartPSS.')
+    return max(candidates)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, required=True, help='Puerto RTSP local de SmartPSS')
+    parser.add_argument('--port', type=int, default=0, help='Puerto RTSP local; 0 autodetecta SmartPSS')
     parser.add_argument('--user', default='admin')
     parser.add_argument('--password', required=True)
     parser.add_argument('--channel', type=int, default=8)
@@ -52,7 +80,9 @@ def main():
 
     model_path = Path(__file__).resolve().parents[1] / 'models' / 'yolo11n.pt'
     model = YOLO(str(model_path))
-    url = f'rtsp://{args.user}:{args.password}@127.0.0.1:{args.port}/cam/realmonitor?channel={args.channel}&subtype=0'
+    port = args.port or detect_rtsp_port()
+    print(f'Puerto RTSP seleccionado: {port}')
+    url = f'rtsp://{args.user}:{args.password}@127.0.0.1:{port}/cam/realmonitor?channel={args.channel}&subtype=0'
     stream = FreshRTSPStream(url)
     persons, pets = {}, {}
     last_time = time.time()
