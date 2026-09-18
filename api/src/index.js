@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const sql = require('mssql');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const app = express();
 const port = Number(process.env.PORT || 6700);
@@ -43,7 +43,9 @@ app.get('/api/accesos', async (req, res, next) => {
       .input('sucursal', sql.Int, store.sucursal_id)
       .input('desde', sql.DateTime2, `${from} 00:00:00`)
       .input('hasta', sql.DateTime2, `${to} 23:59:59`)
-      .query(`SELECT c.Id, c.Fecha, c.UsuarioId, u.Usuario, u.Dni, u.Celular,
+      .query(`SELECT c.Id, c.Fecha, CONVERT(varchar(19), c.Fecha, 120) AS FechaTexto,
+                     CONVERT(varchar(8), c.Fecha, 108) AS HoraTexto,
+                     c.UsuarioId, u.Usuario, u.Dni, u.Celular,
                      uf.Numero AS Lote
               FROM CommLog c
               LEFT JOIN Usuarios u ON c.UsuarioId = u.Id
@@ -68,8 +70,7 @@ app.get('/api/accesos', async (req, res, next) => {
       const total = sales.reduce((sum, sale) => sum + Number(sale.Importe || 0), 0);
       accesos.push({
         id: row.Id,
-        fecha: row.Fecha?.toISOString().slice(0, 19).replace('T', ' ') || '',
-        hora: row.Fecha?.toTimeString().slice(0, 8) || '',
+        fecha: row.FechaTexto || '', hora: row.HoraTexto || '',
         usuario_id: row.UsuarioId,
         usuario: row.Usuario || 'Invitado',
         dni: row.Dni || '-', celular: row.Celular || '-', lote: String(row.Lote || '-'),
@@ -83,21 +84,22 @@ app.get('/api/accesos', async (req, res, next) => {
 app.get('/api/auditoria', async (req, res, next) => {
   try {
     const userId = Number(req.query.usuario_id);
-    const access = new Date(String(req.query.fecha).replace(' ', 'T'));
-    if (!Number.isInteger(userId) || Number.isNaN(access.valueOf())) return res.status(400).json({ status: 'error', message: 'Referencia inválida.' });
-    const start = new Date(access.getTime() - 10 * 60 * 1000);
-    const end = new Date(access.getTime() + 45 * 60 * 1000);
+    const accessTime = String(req.query.fecha || '');
+    if (!Number.isInteger(userId) || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(accessTime)) return res.status(400).json({ status: 'error', message: 'Referencia inválida.' });
     const db = await poolPromise;
-    const result = await db.request().input('usuario', sql.Int, userId).input('desde', sql.DateTime2, start).input('hasta', sql.DateTime2, end)
-      .query(`SELECT v.Id AS VentaId, v.Fecha, v.Importe, dv.ProductoId, p.Nombre AS Producto,
+    const result = await db.request().input('usuario', sql.Int, userId).input('fecha', sql.VarChar(19), accessTime)
+      .query(`SELECT v.Id AS VentaId, v.Fecha, CONVERT(varchar(8), v.Fecha, 108) AS HoraVenta,
+                     v.Importe, dv.ProductoId, p.Nombre AS Producto,
                      dv.Cantidad, COALESCE(dv.Subtotal, dv.Importe, 0) AS Subtotal
               FROM Ventas v INNER JOIN DetalleVenta dv ON v.Id = dv.VentaId
               LEFT JOIN Productos p ON dv.ProductoId = p.Id
-              WHERE v.UsuarioId = @usuario AND v.Fecha BETWEEN @desde AND @hasta
+              WHERE v.UsuarioId = @usuario
+                AND v.Fecha BETWEEN DATEADD(minute, -10, CONVERT(datetime2, @fecha))
+                                 AND DATEADD(minute, 45, CONVERT(datetime2, @fecha))
               ORDER BY v.Fecha ASC`);
     const tickets = new Map();
     for (const row of result.recordset) {
-      if (!tickets.has(row.VentaId)) tickets.set(row.VentaId, { ticket_id: row.VentaId, hora: row.Fecha?.toTimeString().slice(0, 8) || '', importe_total: Number(row.Importe || 0), items: [] });
+      if (!tickets.has(row.VentaId)) tickets.set(row.VentaId, { ticket_id: row.VentaId, hora: row.HoraVenta || '', importe_total: Number(row.Importe || 0), items: [] });
       tickets.get(row.VentaId).items.push({ producto: (row.Producto || `Producto #${row.ProductoId}`).trim(), cantidad: Number(row.Cantidad || 1), subtotal: Number(row.Subtotal || 0) });
     }
     const values = [...tickets.values()];
