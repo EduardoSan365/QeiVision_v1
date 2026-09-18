@@ -1,0 +1,20 @@
+{
+  "exit_code": 0,
+  "results": [
+    {
+      "store": "HMV",
+      "channel": 2,
+      "day": "2026-09-16",
+      "tunnel_created": true,
+      "server": "www.easy4ipcloud.com",
+      "sdk_initialized": true,
+      "modern_login_succeeded": false,
+      "modern_login_error": 3,
+      "legacy_login_attempted": true,
+      "legacy_login_error": 3,
+      "login_succeeded": false,
+      "sdk_error": 2147483750
+    }
+  ],
+  "native_diagnostics_suppressed": false
+}

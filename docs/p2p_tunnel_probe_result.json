@@ -1,0 +1,22 @@
+{
+  "exit_code": 0,
+  "results": [
+    {
+      "store": "HMV",
+      "attempts": [
+        {
+          "server": "www.easy4ipcloud.com",
+          "init_result": 0,
+          "handle_created": true,
+          "device_status": 9,
+          "device_info_result": 1,
+          "device_info_received": false,
+          "connect_result": 0,
+          "tunnel_created": true,
+          "local_port": 35261
+        }
+      ]
+    }
+  ],
+  "native_diagnostics_suppressed": false
+}

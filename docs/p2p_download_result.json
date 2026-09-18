@@ -1,0 +1,24 @@
+{
+  "exit_code": 0,
+  "results": [
+    {
+      "store": "HMV",
+      "channel": 2,
+      "start": "2026-09-16 15:52:00",
+      "end": "2026-09-16 15:52:30",
+      "tunnel_created": true,
+      "sdk_initialized": true,
+      "modern_login_succeeded": true,
+      "modern_login_error": 0,
+      "login_succeeded": true,
+      "login_error": 0,
+      "download_started": true,
+      "download_completed": true,
+      "dav_bytes": 7948555,
+      "conversion_succeeded": true,
+      "mp4_bytes": 2993864,
+      "mp4_path": "C:\\Users\\qeiax\\OneDrive\\Desktop\\P_QeiVision_Codex\\recordings\\HMV_cam2_2026-09-16_155200.mp4"
+    }
+  ],
+  "native_diagnostics_suppressed": false
+}

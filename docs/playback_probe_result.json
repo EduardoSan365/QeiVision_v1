@@ -1,0 +1,16 @@
+{
+  "exit_code": 0,
+  "results": [
+    {
+      "store": "HMV",
+      "channel": 2,
+      "day": "2026-09-16",
+      "start_requested": "2026-09-16 15:52:00",
+      "port": 24606,
+      "opened": false,
+      "decoded_frames": 0,
+      "visual_timestamp_verified": false
+    }
+  ],
+  "native_diagnostics_suppressed": false
+}

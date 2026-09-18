@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QeiVision · Consola de Auditoría</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo_app.png" alt="QeiVision Logo" class="brand-logo-img">
+      <div>
+        <div class="brand-line">
+          <strong>QeiVision</strong>
+          <span class="brand-badge">AUDITORÍA</span>
+        </div>
+        <p>Accesos, tickets y referencia SmartPSS</p>
+      </div>
+    </div>
+    <div class="query-controls">
+      <label>Tienda
+        <select id="select-tienda"></select>
+      </label>
+      <label>Desde
+        <input id="input-desde" type="date">
+      </label>
+      <label>Hasta
+        <input id="input-hasta" type="date">
+      </label>
+      <button id="btn-cargar" class="primary-button">
+        <span id="btn-icon">↻</span>
+        <span id="btn-cargar-label">Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="workflow-bar">
+    <span><b>1</b> Seleccioná un ingreso</span>
+    <span>→</span>
+    <span><b>2</b> Revisá el ticket</span>
+    <span>→</span>
+    <span><b>3</b> Cotejá en SmartPSS</span>
+    <span class="workflow-spacer"></span>
+    <span class="keyboard-hint"><kbd>↑</kbd> <kbd>↓</kbd> Navegar lista</span>
+  </div>
+
+  <main class="audit-layout">
+    <aside class="access-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">REGISTROS DEL RANGO</p>
+          <h1>Ingresos</h1>
+        </div>
+        <span id="badge-total-accesos" class="count-badge">0</span>
+      </div>
+      <input id="input-filtro-texto" class="search-input" placeholder="Buscar usuario, lote, DNI u hora… (Presioná /)">
+      <div class="filter-row">
+        <button class="chip active" data-filter="TODOS">Todos</button>
+        <button class="chip chip-compro" data-filter="COMPRO">✓ Compró</button>
+        <button class="chip chip-sin-compra" data-filter="SIN_COMPRA">Sin compra</button>
+      </div>
+      <div id="access-list-container" class="access-list">
+        <div class="list-placeholder">Elegí tienda y fechas, luego presioná Actualizar.</div>
+      </div>
+    </aside>
+
+    <section class="detail-panel">
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">✓</div>
+        <h2>Consola lista para auditar</h2>
+        <p>Seleccioná un ingreso de la lista para ver el ticket y la referencia para SmartPSS.</p>
+      </div>
+
+      <div id="audit-detail" class="audit-detail" hidden>
+        <section class="selected-header">
+          <div id="avatar-user" class="avatar">U</div>
+          <div class="selected-title">
+            <p class="eyebrow">INGRESO SELECCIONADO</p>
+            <h2 id="selected-user">—</h2>
+          </div>
+          <span id="selected-status" class="status-badge">—</span>
+        </section>
+
+        <section class="ticket-card">
+          <div class="ticket-heading">
+            <div>
+              <p class="eyebrow">ESTADO DE COMPRA</p>
+              <h2>Ticket facturado y cobrado</h2>
+            </div>
+            <div class="ticket-summary">
+              <span id="badge-purchase-status" class="status-badge">Consultando…</span>
+              <strong id="badge-total-ticket">$0,00</strong>
+            </div>
+          </div>
+          <div id="purchase-table-container" class="table-wrap">
+            <table>
+              <thead><tr><th>Hora pago</th><th>Producto</th><th>Cantidad</th><th>Subtotal</th></tr></thead>
+              <tbody id="tbody-abonados"></tbody>
+            </table>
+          </div>
+          <div id="no-purchase-state" class="no-purchase" hidden>
+            <div class="no-purchase-icon">🚪</div>
+            <h3>Este usuario abrió la puerta y no realizó compra</h3>
+            <p>No se encontró ningún ticket facturado ni cobro asociado a este ingreso en AutoShop.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

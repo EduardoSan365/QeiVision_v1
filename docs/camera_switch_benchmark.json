@@ -1,0 +1,52 @@
+{
+  "exit_code": 0,
+  "results": [
+    {
+      "store": "HMV",
+      "start": "2026-09-16 15:52:00",
+      "clip_seconds": 10,
+      "tunnel_created": true,
+      "cameras": [
+        {
+          "channel": 1,
+          "started": false,
+          "sdk_error": 2147483672
+        },
+        {
+          "channel": 2,
+          "started": true,
+          "completed": true,
+          "download_seconds": 3.258,
+          "dav_bytes": 2604765,
+          "remux_seconds": 0.178,
+          "mp4_ready": true,
+          "mp4_bytes": 2593491
+        },
+        {
+          "channel": 3,
+          "started": true,
+          "completed": true,
+          "download_seconds": 3.549,
+          "dav_bytes": 2651261,
+          "remux_seconds": 0.069,
+          "mp4_ready": true,
+          "mp4_bytes": 2639999
+        },
+        {
+          "channel": 4,
+          "started": true,
+          "completed": true,
+          "download_seconds": 3.306,
+          "dav_bytes": 2622873,
+          "remux_seconds": 0.065,
+          "mp4_ready": true,
+          "mp4_bytes": 2612029
+        }
+      ],
+      "login_attempts": 1,
+      "login_succeeded": true,
+      "session_setup_seconds": 12.739
+    }
+  ],
+  "native_diagnostics_suppressed": false
+}

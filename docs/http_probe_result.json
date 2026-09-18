@@ -1,0 +1,34 @@
+[
+  {
+    "port": 24560,
+    "error": "ReadTimeout"
+  },
+  {
+    "port": 24564,
+    "error": "ReadTimeout"
+  },
+  {
+    "port": 24572,
+    "error": "ReadTimeout"
+  },
+  {
+    "port": 24576,
+    "error": "ReadTimeout"
+  },
+  {
+    "port": 24598,
+    "error": "ConnectionError"
+  },
+  {
+    "port": 24602,
+    "error": "ConnectionError"
+  },
+  {
+    "port": 24606,
+    "error": "ConnectionError"
+  },
+  {
+    "port": 24917,
+    "error": "ReadTimeout"
+  }
+]

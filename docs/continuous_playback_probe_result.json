@@ -1,0 +1,16 @@
+{
+  "store": "HME",
+  "channel": 2,
+  "start": "2026-09-16 12:51:30",
+  "capture_wall_seconds": 45,
+  "playback_started_seconds": 3.716,
+  "first_data_seconds": 4.079,
+  "callback_count": 10720,
+  "received_bytes": 10977280,
+  "data_types": [
+    0
+  ],
+  "conversion_succeeded": true,
+  "mp4_bytes": 10927402,
+  "mp4_path": "C:\\Users\\qeiax\\OneDrive\\Desktop\\P_QeiVision_Codex\\recordings\\HME_cam2_2026-09-16_125130_continuous.mp4"
+}
