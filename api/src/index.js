@@ -208,5 +208,44 @@ app.post('/api/usuarios/habilitar', async (req, res, next) => {
 });
 
 
+
+// Compras posteriores a la sesión auditada (fuera de sesión)
+app.get('/api/compras-posteriores', async (req, res, next) => {
+  try {
+    const userId = Number(req.query.usuario_id);
+    const accessTime = String(req.query.fecha || '');
+    if (!Number.isInteger(userId) || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(accessTime)) {
+      return res.status(400).json({ status: 'error', message: 'Referencia inválida.' });
+    }
+    const db = await poolPromise;
+    const result = await db.request()
+      .input('usuario', sql.Int, userId)
+      .input('fecha', sql.VarChar(19), accessTime)
+      .query(`SELECT v.Id AS VentaId, v.Fecha, 
+                     CONVERT(varchar(19), v.Fecha, 120) AS FechaHoraVenta,
+                     CONVERT(varchar(8), v.Fecha, 108) AS HoraVenta,
+                     v.Importe, dv.ProductoId, p.Nombre AS Producto,
+                     dv.Cantidad, COALESCE(dv.Subtotal, dv.Importe, 0) AS Subtotal
+              FROM Ventas v 
+              INNER JOIN DetalleVenta dv ON v.Id = dv.VentaId
+              LEFT JOIN Productos p ON dv.ProductoId = p.Id
+              WHERE v.UsuarioId = @usuario
+                AND v.Fecha > DATEADD(minute, 45, CONVERT(datetime2, @fecha))
+              ORDER BY v.Fecha ASC`);
+    
+    const productos = result.recordset.map(row => ({
+      ticket_id: row.VentaId,
+      fecha_hora: row.FechaHoraVenta || '',
+      hora: row.HoraVenta || '',
+      producto: String(row.Producto || `Producto #${row.ProductoId}`).trim(),
+      cantidad: Number(row.Cantidad || 1),
+      subtotal: Number(row.Subtotal || 0)
+    }));
+
+    return res.json({ status: 'ok', productos });
+  } catch (error) { return next(error); }
+});
+
+
 app.use((error, _req, res, _next) => { console.error('[QeiVision-API]', error.message); res.status(500).json({ status: 'error', message: 'No se pudo completar la operación.' }); });
 app.listen(port, () => console.log(`QeiVision-API escuchando en puerto ${port}`));

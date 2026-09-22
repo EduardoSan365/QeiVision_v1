@@ -561,3 +561,34 @@ function setupAccountActionHandlers() {
     }
   });
 }
+
+
+async function togglePosteriorProducts() {
+  const button = document.getElementById('btn-posterior');
+  const card = document.getElementById('posterior-card');
+  if (!card.hidden) {
+    card.hidden = true;
+    button.classList.remove('active');
+    return;
+  }
+  const tbody = document.getElementById('tbody-posteriores');
+  card.hidden = false;
+  button.classList.add('active');
+  tbody.innerHTML = '<tr><td colspan="4" class="loading-cell">Consultando compras posteriores...</td></tr>';
+  try {
+    const params = new URLSearchParams({ usuario_id: activeAccess.usuario_id, fecha: activeAccess.fecha });
+    const response = await fetch(apiUrl(`/api/compras-posteriores?${params}`));
+    const data = await response.json();
+    if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'No se pudieron consultar compras posteriores.');
+    tbody.innerHTML = data.productos && data.productos.length ? data.productos.map(item => `
+      <tr>
+        <td class="mono-muted">${escapeHtml(item.fecha_hora)}</td>
+        <td class="product-name">${escapeHtml(item.producto)}</td>
+        <td style="text-align: center; font-weight: 700;">${item.cantidad}</td>
+        <td style="font-weight: 800; color: var(--success-text);">$ ${Number(item.subtotal).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+      </tr>`).join('')
+      : '<tr><td colspan="4" class="empty-cell">No se registran compras posteriores para este usuario.</td></tr>';
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="4" class="error-cell">${escapeHtml(error.message)}</td></tr>`;
+  }
+}

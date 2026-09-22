@@ -86,6 +86,7 @@
           <button id="btn-toggle-account" class="status-badge action-account-btn" type="button" hidden></button>
           <span id="selected-status" class="status-badge">—</span>
           <button id="btn-scanned" class="status-badge status-success scan-button" type="button">Escaneó</button>
+          <button id="btn-posterior" class="status-badge scan-button btn-posterior" type="button">Posterior</button>
         </section>
 
         <section class="ticket-card">
@@ -123,6 +124,20 @@
             <table>
               <thead><tr><th>Hora de escaneo</th><th>Producto</th><th>Carrito</th></tr></thead>
               <tbody id="tbody-escaneados"></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="posterior-card" class="ticket-card scan-card posterior-card" hidden>
+          <div class="ticket-heading">
+            <div>
+              <p class="eyebrow">COMPRAS POSTERIORES (FUERA DE SESIÓN)</p>
+              <h2>Productos abonados con posterioridad</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha / Hora pago</th><th>Producto</th><th>Cantidad</th><th>Subtotal</th></tr></thead>
+              <tbody id="tbody-posteriores"></tbody>
             </table>
           </div>
         </section>

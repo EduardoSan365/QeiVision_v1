@@ -946,3 +946,20 @@ tbody tr:hover {
   gap: 10px;
   background: var(--bg-panel-soft);
 }
+
+
+.btn-posterior {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-posterior:hover, .btn-posterior.active {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+  filter: brightness(0.96);
+}
