@@ -841,3 +841,108 @@ tbody tr:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* Estados y acciones de cuenta (Inhabilitar / Habilitar) */
+.status-account-enabled {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+  font-weight: 700;
+}
+
+.status-account-disabled {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  font-weight: 700;
+}
+
+.action-account-btn {
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.action-account-btn:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.btn-inhabilitar {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+.btn-inhabilitar:hover {
+  background: #fca5a5;
+  color: #7f1d1d;
+}
+
+.btn-habilitar {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #4ade80;
+}
+
+.btn-habilitar:hover {
+  background: #bbf7d0;
+  color: #14532d;
+}
+
+/* Modal de gestión de cuenta */
+.account-modal {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 440px;
+  width: 90%;
+  background: #ffffff;
+}
+
+.account-modal::backdrop {
+  background: rgba(25, 15, 29, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line-light);
+  background: var(--bg-panel-soft);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.modal-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--bg-panel-soft);
+}

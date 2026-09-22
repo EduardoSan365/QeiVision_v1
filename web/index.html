@@ -83,6 +83,7 @@
             <p class="eyebrow">INGRESO SELECCIONADO</p>
             <h2 id="selected-user">—</h2>
           </div>
+          <button id="btn-toggle-account" class="status-badge action-account-btn" type="button" hidden></button>
           <span id="selected-status" class="status-badge">—</span>
           <button id="btn-scanned" class="status-badge status-success scan-button" type="button">Escaneó</button>
         </section>
@@ -128,6 +129,27 @@
       </div>
     </section>
   </main>
+
+  
+  <!-- Modal de Gestión de Cuenta (Inhabilitar / Habilitar) -->
+  <dialog id="modal-account" class="account-modal">
+    <form method="dialog" id="form-account-action">
+      <div class="modal-header">
+        <h3 id="modal-account-title">Gestionar Cuenta</h3>
+      </div>
+      <div class="modal-body">
+        <p id="modal-account-desc">¿Confirmás la acción sobre este usuario?</p>
+        <div id="modal-motivo-group" class="modal-group">
+          <label for="input-motivo-inhabilitar">Motivo de la inhabilitación:</label>
+          <input type="text" id="input-motivo-inhabilitar" class="search-input" value="Discrepancia detectada en auditoría" maxlength="200">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-modal-cancel" class="chip">Cancelar</button>
+        <button type="submit" id="btn-modal-confirm" class="primary-button">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
 
   <div id="toast" class="toast" role="status"></div>
   <script src="runtime-config.js"></script>

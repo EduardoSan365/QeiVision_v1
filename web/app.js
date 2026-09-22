@@ -57,6 +57,7 @@ function bindEvents() {
   });
 
   searchInput.addEventListener('input', applyFilters);
+  setupAccountActionHandlers();
 
   document.getElementById('ref-time')?.addEventListener('click', copyOnlyTime);
   document.getElementById('btn-scanned')?.addEventListener('click', toggleScannedProducts);
@@ -261,6 +262,7 @@ async function selectAccess(access) {
   scanButton.classList.remove('active');
   document.getElementById('scan-card').hidden = true;
   await loadTicket(access);
+  await loadUserAccountStatus(access.usuario_id);
 }
 
 async function toggleScannedProducts() {
@@ -426,4 +428,136 @@ function formatQuantity(value) {
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'})[character]);
+}
+
+
+let currentAccountHabilitado = true;
+
+async function loadUserAccountStatus(userId) {
+  // badge removed
+  const btn = document.getElementById('btn-toggle-account');
+  if (!btn || !userId) {
+    
+    if (btn) btn.hidden = true;
+    return;
+  }
+  
+  
+  
+  btn.hidden = true;
+
+  try {
+    const res = await fetch(apiUrl(`/api/usuarios/estado?usuario_id=${userId}`));
+    const data = await res.json();
+    if (data.status === 'ok') {
+      currentAccountHabilitado = data.habilitado;
+      renderAccountControls(data.habilitado);
+    } else {
+      
+      btn.hidden = true;
+    }
+  } catch (err) {
+    
+  }
+}
+
+function renderAccountControls(habilitado) {
+  // badge removed
+  const btn = document.getElementById('btn-toggle-account');
+  if (!btn) return;
+
+  
+  btn.hidden = false;
+
+  if (habilitado) {
+    
+    
+    btn.textContent = '⛔ Inhabilitar Cuenta';
+    btn.className = 'status-badge action-account-btn btn-inhabilitar';
+  } else {
+    
+    
+    btn.textContent = '✅ Habilitar Cuenta';
+    btn.className = 'status-badge action-account-btn btn-habilitar';
+  }
+}
+
+function setupAccountActionHandlers() {
+  const btnToggle = document.getElementById('btn-toggle-account');
+  const modal = document.getElementById('modal-account');
+  const btnCancel = document.getElementById('btn-modal-cancel');
+  const form = document.getElementById('form-account-action');
+  const title = document.getElementById('modal-account-title');
+  const desc = document.getElementById('modal-account-desc');
+  const motivoGroup = document.getElementById('modal-motivo-group');
+  const inputMotivo = document.getElementById('input-motivo-inhabilitar');
+
+  if (!btnToggle || !modal) return;
+
+  btnToggle.addEventListener('click', () => {
+    if (!activeAccess) return;
+    if (currentAccountHabilitado) {
+      title.textContent = 'Inhabilitar Cuenta de Usuario';
+      desc.textContent = `¿Confirmás la inhabilitación de "${activeAccess.usuario}"? Se bloqueará la apertura de la puerta y se le enviará automáticamente la notificación al teléfono.`;
+      motivoGroup.hidden = false;
+      inputMotivo.value = 'Discrepancia detectada en auditoría';
+    } else {
+      title.textContent = 'Habilitar Cuenta de Usuario';
+      desc.textContent = `¿Confirmás la reactivación de la cuenta de "${activeAccess.usuario}"? Se restablecerá el acceso a la puerta y se le notificará al teléfono.`;
+      motivoGroup.hidden = true;
+    }
+    modal.showModal();
+  });
+
+  btnCancel?.addEventListener('click', () => {
+    modal.close();
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modal.close();
+    if (!activeAccess) return;
+
+    const btnConfirm = document.getElementById('btn-modal-confirm');
+    btnToggle.disabled = true;
+    showToast('Procesando solicitud de cuenta...');
+
+    try {
+      if (currentAccountHabilitado) {
+        const motivo = inputMotivo.value.trim() || 'Discrepancia detectada en auditoría';
+        const res = await fetch(apiUrl('/api/usuarios/inhabilitar'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuario_id: activeAccess.usuario_id,
+            motivo: motivo,
+            auditor: 'Auditor QeiVision'
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') throw new Error(data.message || 'Error al inhabilitar.');
+        currentAccountHabilitado = false;
+        renderAccountControls(false);
+        showToast('⛔ Cuenta inhabilitada y notificación enviada al usuario.');
+      } else {
+        const res = await fetch(apiUrl('/api/usuarios/habilitar'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuario_id: activeAccess.usuario_id,
+            auditor: 'Auditor QeiVision'
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') throw new Error(data.message || 'Error al habilitar.');
+        currentAccountHabilitado = true;
+        renderAccountControls(true);
+        showToast('✅ Cuenta reactivada y notificación enviada al usuario.');
+      }
+    } catch (error) {
+      showToast(error.message, true);
+    } finally {
+      btnToggle.disabled = false;
+    }
+  });
 }

@@ -153,5 +153,60 @@ app.get('/api/logs-carritos', async (req, res, next) => {
   } catch (error) { return next(error); }
 });
 
+
+// Obtener estado de cuenta del usuario
+app.get('/api/usuarios/estado', async (req, res, next) => {
+  try {
+    const userId = Number(req.query.usuario_id);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ status: 'error', message: 'ID de usuario inválido.' });
+    }
+    const db = await poolPromise;
+    const result = await db.request()
+      .input('UsuarioId', sql.Int, userId)
+      .execute('dbo.sp_ObtenerEstadoUsuario');
+    const estado = result.recordset?.[0]?.Estado || 'HABILITADO';
+    const habilitado = result.recordset?.[0]?.Habilitado === 1;
+    return res.json({ status: 'ok', usuario_id: userId, estado, habilitado });
+  } catch (error) { return next(error); }
+});
+
+// Inhabilitar usuario (bloqueo + notificación automática)
+app.post('/api/usuarios/inhabilitar', async (req, res, next) => {
+  try {
+    const userId = Number(req.body.usuario_id);
+    const motivo = String(req.body.motivo || 'Discrepancia detectada en auditoría').trim();
+    const auditor = String(req.body.auditor || 'Auditor').trim();
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ status: 'error', message: 'ID de usuario inválido.' });
+    }
+    const db = await poolPromise;
+    await db.request()
+      .input('UsuarioId', sql.Int, userId)
+      .input('Motivo', sql.NVarChar(250), motivo)
+      .input('Auditor', sql.NVarChar(100), auditor)
+      .execute('dbo.sp_InhabilitarUsuario');
+    return res.json({ status: 'ok', message: 'Usuario inhabilitado y notificado correctamente.', estado: 'INHABILITADO' });
+  } catch (error) { return next(error); }
+});
+
+// Habilitar usuario (desbloqueo + notificación automática)
+app.post('/api/usuarios/habilitar', async (req, res, next) => {
+  try {
+    const userId = Number(req.body.usuario_id);
+    const auditor = String(req.body.auditor || 'Auditor').trim();
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ status: 'error', message: 'ID de usuario inválido.' });
+    }
+    const db = await poolPromise;
+    await db.request()
+      .input('UsuarioId', sql.Int, userId)
+      .input('Auditor', sql.NVarChar(100), auditor)
+      .execute('dbo.sp_HabilitarUsuario');
+    return res.json({ status: 'ok', message: 'Usuario habilitado y notificado correctamente.', estado: 'HABILITADO' });
+  } catch (error) { return next(error); }
+});
+
+
 app.use((error, _req, res, _next) => { console.error('[QeiVision-API]', error.message); res.status(500).json({ status: 'error', message: 'No se pudo completar la operación.' }); });
 app.listen(port, () => console.log(`QeiVision-API escuchando en puerto ${port}`));
