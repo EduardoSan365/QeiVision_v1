@@ -230,7 +230,7 @@ app.get('/api/compras-posteriores', async (req, res, next) => {
               INNER JOIN DetalleVenta dv ON v.Id = dv.VentaId
               LEFT JOIN Productos p ON dv.ProductoId = p.Id
               WHERE v.UsuarioId = @usuario
-                AND v.Fecha > DATEADD(minute, 45, CONVERT(datetime2, @fecha))
+                AND v.Fecha > CONVERT(datetime2, @fecha)
               ORDER BY v.Fecha ASC`);
     
     const productos = result.recordset.map(row => ({

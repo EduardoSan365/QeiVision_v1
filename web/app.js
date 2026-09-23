@@ -61,6 +61,7 @@ function bindEvents() {
 
   document.getElementById('ref-time')?.addEventListener('click', copyOnlyTime);
   document.getElementById('btn-scanned')?.addEventListener('click', toggleScannedProducts);
+  document.getElementById('btn-posterior')?.addEventListener('click', togglePosteriorProducts);
 
   document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
