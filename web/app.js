@@ -577,7 +577,7 @@ async function togglePosteriorProducts() {
   card.hidden = false;
   button.classList.add('active');
   card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  tbody.innerHTML = '<tr><td colspan="4" class="loading-cell">Consultando compras posteriores...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">Consultando compras posteriores...</td></tr>';
   try {
     const params = new URLSearchParams({ usuario_id: activeAccess.usuario_id, fecha: activeAccess.fecha });
     const response = await fetch(apiUrl(`/api/compras-posteriores?${params}`));
@@ -588,17 +588,18 @@ async function togglePosteriorProducts() {
       button.textContent = `Posterior (${data.productos.length})`;
       tbody.innerHTML = data.productos.map(item => `
         <tr>
-          <td class="mono-muted" style="white-space: nowrap; font-weight: 700;">${escapeHtml(item.fecha_hora)}</td>
+          <td class="mono-muted" style="white-space: nowrap; font-weight: 700;">${escapeHtml(item.fecha || (item.fecha_hora ? item.fecha_hora.split(' ')[0] : '-'))}</td>
+          <td style="font-weight: 600; color: #475569; white-space: nowrap;">${escapeHtml(item.marca || '-')}</td>
           <td class="product-name">${escapeHtml(item.producto)}</td>
           <td style="text-align: center; font-weight: 700;">${item.cantidad}</td>
           <td style="font-weight: 800; color: var(--success-text);">$ ${Number(item.subtotal).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
         </tr>`).join('');
     } else {
       button.textContent = 'Posterior (0)';
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No se registran compras posteriores para este usuario.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No se registran compras posteriores para este usuario.</td></tr>';
     }
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="4" class="error-cell">${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="error-cell">${escapeHtml(error.message)}</td></tr>`;
   }
 }

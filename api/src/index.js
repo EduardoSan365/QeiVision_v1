@@ -222,21 +222,28 @@ app.get('/api/compras-posteriores', async (req, res, next) => {
       .input('usuario', sql.Int, userId)
       .input('fecha', sql.VarChar(19), accessTime)
       .query(`SELECT v.Id AS VentaId, v.Fecha, 
+                     CONVERT(varchar(10), v.Fecha, 103) AS FechaVentaAR,
+                     CONVERT(varchar(10), v.Fecha, 120) AS FechaVentaISO,
                      CONVERT(varchar(19), v.Fecha, 120) AS FechaHoraVenta,
                      CONVERT(varchar(8), v.Fecha, 108) AS HoraVenta,
                      v.Importe, dv.ProductoId, p.Nombre AS Producto,
+                     COALESCE(m.Nombre, '-') AS Marca,
                      dv.Cantidad, COALESCE(dv.Subtotal, dv.Importe, 0) AS Subtotal
               FROM Ventas v 
               INNER JOIN DetalleVenta dv ON v.Id = dv.VentaId
               LEFT JOIN Productos p ON dv.ProductoId = p.Id
+              LEFT JOIN Marcas m ON p.MarcaId = m.Id
               WHERE v.UsuarioId = @usuario
                 AND v.Fecha > CONVERT(datetime2, @fecha)
               ORDER BY v.Fecha ASC`);
     
     const productos = result.recordset.map(row => ({
       ticket_id: row.VentaId,
+      fecha: row.FechaVentaAR || row.FechaVentaISO || '',
+      fecha_iso: row.FechaVentaISO || '',
       fecha_hora: row.FechaHoraVenta || '',
       hora: row.HoraVenta || '',
+      marca: String(row.Marca || '-').trim(),
       producto: String(row.Producto || `Producto #${row.ProductoId}`).trim(),
       cantidad: Number(row.Cantidad || 1),
       subtotal: Number(row.Subtotal || 0)
