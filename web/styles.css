@@ -963,3 +963,158 @@ tbody tr:hover {
   border-color: #93c5fd;
   filter: brightness(0.96);
 }
+
+
+/* ==========================================================================
+   Overlay de Inactividad y Desconexión (Atenuación con efecto Blur)
+   ========================================================================== */
+.idle-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 15, 29, 0.84);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.idle-overlay:not([hidden]) {
+  opacity: 1;
+  visibility: visible;
+}
+
+.idle-card {
+  max-width: 480px;
+  width: 100%;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  border-radius: 20px;
+  padding: 36px 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(0.94);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.idle-overlay:not([hidden]) .idle-card {
+  transform: scale(1);
+}
+
+.idle-icon-badge {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);
+}
+
+.idle-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.2);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.idle-card h2 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #f9fafb;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.02em;
+}
+
+.idle-card p {
+  font-size: 0.92rem;
+  color: #9ca3af;
+  line-height: 1.55;
+  margin: 0 0 22px 0;
+}
+
+.idle-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.status-dot-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+.status-dot-pulse.offline {
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.btn-resume {
+  width: 100%;
+  padding: 13px 24px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+  transition: all 0.2s ease;
+}
+
+.btn-resume:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -5px rgba(79, 70, 229, 0.65);
+}
+
+.btn-resume:active {
+  transform: translateY(0);
+}
+
+/* Estado de procesamiento en botones */
+.action-account-btn:disabled,
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}

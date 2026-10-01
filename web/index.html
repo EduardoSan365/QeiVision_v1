@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260922c">
+  <link rel="stylesheet" href="styles.css?v=20261001a">
 </head>
 <body>
   <header class="topbar">
@@ -166,8 +166,34 @@
     </form>
   </dialog>
 
+
+  <!-- Overlay de Inactividad y Desconexión (Protección de Sesión) -->
+  <div id="idle-overlay" class="idle-overlay" hidden>
+    <div class="idle-card">
+      <div class="idle-icon-badge">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <span class="idle-tag">PROTECCIÓN DE AUDITORÍA</span>
+      <h2 id="idle-title">Consola en Pausa</h2>
+      <p id="idle-desc">La pantalla se ha atenuado tras un período de inactividad para resguardar los datos de auditoría y optimizar la conexión. Presioná el botón para reanudar de inmediato.</p>
+      <div class="idle-status-row">
+        <span id="idle-status-dot" class="status-dot-pulse"></span>
+        <span id="idle-status-text">Conexión con el servidor lista</span>
+      </div>
+      <button id="btn-resume-work" class="primary-button btn-resume" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="btn-resume-label">Volver a trabajar</span>
+      </button>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status"></div>
   <script src="runtime-config.js"></script>
-  <script src="app.js?v=20260922d"></script>
+  <script src="app.js?v=20261001a"></script>
 </body>
 </html>

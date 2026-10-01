@@ -58,6 +58,7 @@ function bindEvents() {
 
   searchInput.addEventListener('input', applyFilters);
   setupAccountActionHandlers();
+  initIdleAndConnectionManager();
 
   document.getElementById('ref-time')?.addEventListener('click', copyOnlyTime);
   document.getElementById('btn-scanned')?.addEventListener('click', toggleScannedProducts);
@@ -483,6 +484,8 @@ function renderAccountControls(habilitado) {
   }
 }
 
+let isSubmittingAccountAction = false;
+
 function setupAccountActionHandlers() {
   const btnToggle = document.getElementById('btn-toggle-account');
   const modal = document.getElementById('modal-account');
@@ -492,11 +495,12 @@ function setupAccountActionHandlers() {
   const desc = document.getElementById('modal-account-desc');
   const motivoGroup = document.getElementById('modal-motivo-group');
   const inputMotivo = document.getElementById('input-motivo-inhabilitar');
+  const btnConfirm = document.getElementById('btn-modal-confirm');
 
   if (!btnToggle || !modal) return;
 
   btnToggle.addEventListener('click', () => {
-    if (!activeAccess) return;
+    if (!activeAccess || isSubmittingAccountAction) return;
     if (currentAccountHabilitado) {
       title.textContent = 'Inhabilitar Cuenta de Usuario';
       desc.textContent = `¿Confirmás la inhabilitación de "${activeAccess.usuario}"? Se bloqueará la apertura de la puerta y se le enviará automáticamente la notificación al teléfono.`;
@@ -511,16 +515,27 @@ function setupAccountActionHandlers() {
   });
 
   btnCancel?.addEventListener('click', () => {
+    if (isSubmittingAccountAction) return;
     modal.close();
   });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    modal.close();
     if (!activeAccess) return;
 
-    const btnConfirm = document.getElementById('btn-modal-confirm');
+    // Prevención estricta de multiclic
+    if (isSubmittingAccountAction) return;
+    isSubmittingAccountAction = true;
+
+    if (btnConfirm) {
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = '⏳ Procesando...';
+    }
+    if (btnCancel) {
+      btnCancel.disabled = true;
+    }
     btnToggle.disabled = true;
+    btnToggle.textContent = '⏳ Procesando...';
     showToast('Procesando solicitud de cuenta...');
 
     try {
@@ -555,12 +570,142 @@ function setupAccountActionHandlers() {
         renderAccountControls(true);
         showToast('✅ Cuenta reactivada y notificación enviada al usuario.');
       }
+      modal.close();
     } catch (error) {
       showToast(error.message, true);
+      renderAccountControls(currentAccountHabilitado);
     } finally {
+      isSubmittingAccountAction = false;
+      if (btnConfirm) {
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = 'Confirmar';
+      }
+      if (btnCancel) {
+        btnCancel.disabled = false;
+      }
       btnToggle.disabled = false;
     }
   });
+}
+
+function initIdleAndConnectionManager() {
+  const overlay = document.getElementById('idle-overlay');
+  const title = document.getElementById('idle-title');
+  const desc = document.getElementById('idle-desc');
+  const dot = document.getElementById('idle-status-dot');
+  const statusText = document.getElementById('idle-status-text');
+  const btnResume = document.getElementById('btn-resume-work');
+  const btnLabel = document.getElementById('btn-resume-label');
+
+  if (!overlay || !btnResume) return;
+
+  let idleTimer = null;
+  const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutos
+  let isOverlayActive = false;
+  let isCheckingConnection = false;
+
+  function showOverlay(mode = 'inactivity') {
+    isOverlayActive = true;
+    overlay.hidden = false;
+
+    if (mode === 'offline') {
+      title.textContent = 'Conexión Interrumpida';
+      desc.textContent = 'Se perdió la comunicación con el servidor o la red local. Verificá tu conexión a Internet para reanudar la auditoría.';
+      if (dot) dot.className = 'status-dot-pulse offline';
+      if (statusText) statusText.textContent = 'Sin conexión con el servidor';
+    } else {
+      title.textContent = 'Consola en Pausa';
+      desc.textContent = 'La pantalla se ha atenuado tras un período de inactividad para resguardar los datos de auditoría y optimizar la conexión. Presioná el botón para reanudar de inmediato.';
+      if (dot) dot.className = 'status-dot-pulse';
+      if (statusText) statusText.textContent = navigator.onLine ? 'Conexión con el servidor lista' : 'Sin conexión a Internet';
+    }
+  }
+
+  function hideOverlay() {
+    overlay.hidden = true;
+    isOverlayActive = false;
+    resetIdleTimer();
+  }
+
+  function resetIdleTimer() {
+    if (isOverlayActive) return;
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      showOverlay('inactivity');
+    }, IDLE_TIMEOUT_MS);
+  }
+
+  // Escuchar actividad de usuario (con throttle)
+  let lastActivity = 0;
+  function onUserActivity() {
+    const now = Date.now();
+    if (now - lastActivity > 1000) {
+      lastActivity = now;
+      resetIdleTimer();
+    }
+  }
+
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+    window.addEventListener(evt, onUserActivity, { passive: true });
+  });
+
+  // Visibilidad de pestaña
+  let hiddenTimestamp = null;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      hiddenTimestamp = Date.now();
+    } else {
+      if (hiddenTimestamp && (Date.now() - hiddenTimestamp > IDLE_TIMEOUT_MS)) {
+        showOverlay('inactivity');
+      }
+      hiddenTimestamp = null;
+    }
+  });
+
+  // Monitoreo de conectividad
+  window.addEventListener('offline', () => {
+    showOverlay('offline');
+  });
+
+  window.addEventListener('online', () => {
+    if (dot) dot.className = 'status-dot-pulse';
+    if (statusText) statusText.textContent = 'Conexión a Internet restablecida';
+  });
+
+  // Botón Volver a trabajar
+  btnResume.addEventListener('click', async () => {
+    if (isCheckingConnection) return;
+    isCheckingConnection = true;
+    btnResume.disabled = true;
+    if (btnLabel) btnLabel.textContent = 'Verificando conexión...';
+
+    try {
+      const checkUrl = apiUrl(activeAccess && activeAccess.usuario_id ? `/api/usuarios/estado?usuario_id=${activeAccess.usuario_id}` : '/api/tiendas');
+      const res = await fetch(checkUrl, { cache: 'no-store' });
+
+      if (!res.ok && res.status >= 500) {
+        throw new Error('Servidor no disponible momentáneamente');
+      }
+
+      if (activeAccess && activeAccess.usuario_id) {
+        loadUserAccountStatus(activeAccess.usuario_id);
+      }
+
+      hideOverlay();
+      showToast('✅ Sesión reanudada y sincronizada.');
+    } catch (err) {
+      console.warn('[QeiVision] Error al verificar conexión:', err);
+      if (dot) dot.className = 'status-dot-pulse offline';
+      if (statusText) statusText.textContent = 'El servidor aún no responde. Reintentando...';
+      showToast('No se pudo restablecer la conexión aún. Probá nuevamente en unos segundos.', true);
+    } finally {
+      isCheckingConnection = false;
+      btnResume.disabled = false;
+      if (btnLabel) btnLabel.textContent = 'Volver a trabajar';
+    }
+  });
+
+  resetIdleTimer();
 }
 
 
